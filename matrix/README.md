@@ -186,21 +186,6 @@ KQL translations for R3, R4, R5 land in `../detections/kql/`. Sigma sources of t
 
 ---
 
-## ATT&CK Navigator Layer
-
-To export:
-
-1. Open `mitre-attack.github.io/attack-navigator/`, "Create New Layer", "Enterprise ATT&CK".
-2. Layer name: `UNC6395 - Salesloft Drift Campaign`. Description links back to this README.
-3. For each technique above, search by ID, set a score: `2` for Emulate, `1` for Document. Configure the gradient under layer settings.
-4. Paste the Evidence row content into each technique's `comment` field.
-5. Layer menu, "Download Layer as JSON" → `unc6395-layer.json` (this directory).
-6. Layer menu, "Render Layer via SVG" → `unc6395-layer.svg` (this directory).
-
-Both files belong in this directory and should be referenced from the project README.
-
----
-
 ## Source Library
 
 | Source | Title | Link |
