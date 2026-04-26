@@ -2,7 +2,7 @@
 
 **Campaign:** Salesloft Drift OAuth Compromise and Salesforce Mass Exfiltration (August 2025)
 **Source threat profile:** [UNC6395 Profile](../profile/README.md)
-**Navigator layer: **[UNC6395-layer.json](UNC6395-layer.json)**, **[UNC6395-layer.svg](UNC6395-layer.svg)**
+**Navigator layer: **[UNC6395-layer.json](UNC6395-layer.json), [UNC6395-layer.svg](UNC6395-layer.svg)
 
 ---
 
