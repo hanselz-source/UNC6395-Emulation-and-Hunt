@@ -1,7 +1,7 @@
 # TTP Matrix: UNC6395 / GRUB1 / ShinyHunters
 
 **Campaign:** Salesloft Drift OAuth Compromise and Salesforce Mass Exfiltration (August 2025)
-**Source threat profile:** [UNC6395 Profile](../profile/README)
+**Source threat profile:** [UNC6395 Profile](../profile/README.md)
 **Navigator layer: **[UNC6395-layer.json](UNC6395-layer.json)**, **[UNC6395-layer.svg](UNC6395-layer.svg)**
 
 ---
