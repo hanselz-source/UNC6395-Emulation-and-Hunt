@@ -95,16 +95,6 @@ The legacy "Connected Apps OAuth Usage" page is not exposed for External Client 
 1. Open a terminal in `output/`, run `grep '^\[' recon_burst.log | head -55`, screenshot the pane. Save as `output/recon_burst_terminal.png`. This is the volume signature, 51 timestamped queries with `UA=truffleHog` visible on each line.
 2. Setup -> Quick Find -> "System Overview". Crop to the API Usage tile. Save as `output/system_overview_api_usage.png`. The validation run shows `55 / 15,000 (0%)`, which is 51 queries + 3 flat REST calls + 1 token exchange.
 
-### 5. Commit hygiene
-
-`git status` should show no token files. The `.gitignore` excludes `keys/access_token`, `keys/refresh_token`, `keys/instance_url`, and any `*.token` / `*token.txt`. Before `git commit`, run:
-
-```
-git diff --cached | grep -E '00Dg|5Aep|AQEAQE|aPrxd|888g5000000OC3G'
-```
-
-Anything that hits, unstage. The External Client App `consumer_secret` and `consumer_key` are committed in `keys/`; rotate the External Client App secret in Salesforce after the package is graded (Setup -> External Client App Manager -> Drift_Integration -> Manage Consumer Details -> Reset).
-
 ## Artifacts Captured
 
 | File | What it shows |
