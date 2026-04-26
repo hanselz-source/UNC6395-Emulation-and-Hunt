@@ -143,7 +143,7 @@ The most important section of this README. What was deliberately cut, in priorit
 │       ├── R4_T1550.001_serviceprincipal_no_human.kql
 │       └── R5_T1087.004_volume_enumeration.kql
 └── validation/
-    └── 06 Validation.md                   per-rule validation pass with honest gaps
+    └── Validation.md                   per-rule validation pass with honest gaps
 ```
 
 ---
