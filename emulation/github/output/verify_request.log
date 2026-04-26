@@ -1,0 +1,42 @@
+========================================================================
+# Emulation 1 verification probe
+# Time:       2026-04-26T16:36:44.409030+00:00
+# Target:     http://127.0.0.1:8089/verify
+# Token file: /Users/hanselz/Documents/ThreatHunter Lab/threathunter-truffle-target/config/secrets.yaml
+# Latency:    10.8 ms
+========================================================================
+
+--- REQUEST ---
+GET /verify HTTP/1.1
+Host: 127.0.0.1:8089
+User-Agent: truffleHog
+Authorization: Bearer 5Aep861FAKETESTVALUEqVZxJ9Hk7nM2pQ4tR6sU8vW0xY1zA3bC5dE7fG9h
+Accept: application/json
+X-Lab-Emulation: Emulation-1-T1552.001
+
+--- RESPONSE ---
+HTTP/1.1 404 File not found
+Server: SimpleHTTP/0.6 Python/3.14.3
+Date: Sun, 26 Apr 2026 16:36:44 GMT
+Connection: close
+Content-Type: text/html;charset=utf-8
+Content-Length: 460
+
+<!DOCTYPE HTML>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <style type="text/css">
+            :root {
+                color-scheme: light dark;
+            }
+        </style>
+        <title>Error response</title>
+    </head>
+    <body>
+        <h1>Error response</h1>
+        <p>Error code: 404</p>
+        <p>Message: File not found.</p>
+        <p>Error code explanation: 404 - Nothing matches the given URI.</p>
+    </body>
+</html>

@@ -1,0 +1,29 @@
+# Public template for the Drift integration worker. Copy to app.yaml
+# locally and fill in environment-specific values. Do NOT put secrets
+# in this file - those live in config/secrets.yaml (which, on a properly
+# configured repo, would be in .gitignore but is not in this synthetic
+# target by design).
+
+service:
+  name: drift-sync-worker
+  port: 8080
+  log_level: INFO
+  request_timeout_seconds: 30
+
+salesforce:
+  api_version: v58.0
+  bulk_api_concurrency: 4
+  poll_interval_seconds: 60
+
+snowflake:
+  warehouse: DRIFT_WH
+  database: DRIFT_RAW
+  schema: PUBLIC
+
+aws:
+  region: us-east-1
+  ssm_parameter_prefix: /drift-sync/prod/
+
+retry:
+  max_attempts: 3
+  backoff_seconds: 2
