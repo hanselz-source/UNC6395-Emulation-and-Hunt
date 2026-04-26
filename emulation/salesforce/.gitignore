@@ -1,0 +1,13 @@
+# Captured at runtime, never commit
+keys/access_token
+keys/refresh_token
+keys/instance_url
+keys/auth_code
+*.token
+*token.txt
+
+# OS junk
+.DS_Store
+
+# Local working files
+output/*.tmp
