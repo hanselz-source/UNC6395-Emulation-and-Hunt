@@ -1,0 +1,48 @@
+// R5, T1087.004: High-Volume Cloud Account or Object Enumeration from a Single OAuth App
+// Translated from detections/sigma/R5_T1087.004_volume_enumeration.yml
+// Run inside Microsoft Sentinel against MicrosoftGraphActivityLogs.
+//
+// Hypothesis: more than 50 enumeration calls (Graph /users, /groups, /applications)
+// from a single OAuth app within a 5-minute tumbling window. UNC6395 followed a
+// schema-then-bulk pattern with progressive LIMIT clauses against Salesforce; the
+// M365 analog is high-volume Graph enumeration as a precursor to bulk export.
+//
+// Salesforce-side equivalent (requires Event Monitoring):
+//   EventLogFile
+//   | where EventType == "ApiEvent"
+//   | where Uri startswith "/services/data" and (Uri contains "/sobjects/" or Uri contains "/query")
+//   | summarize CallCount = count() by ConnectedAppId, bin(Timestamp, 5m)
+//   | where CallCount > 50
+
+let WindowSize = 5m;
+let Threshold = 50;
+let EnumPaths = dynamic([
+    "/v1.0/users",
+    "/v1.0/groups",
+    "/v1.0/applications",
+    "/beta/users",
+    "/beta/groups"
+]);
+
+MicrosoftGraphActivityLogs
+| where TimeGenerated > ago(1h)
+| where RequestUri has_any (EnumPaths)
+| extend Bucket = bin(TimeGenerated, WindowSize)
+| summarize
+    CallCount = count(),
+    DistinctPaths = dcount(RequestUri),
+    SamplePaths = make_set(RequestUri, 5),
+    FirstSeen = min(TimeGenerated),
+    LastSeen = max(TimeGenerated)
+    by AppId, ServicePrincipalId, Bucket
+| where CallCount > Threshold
+| project
+    Bucket,
+    AppId,
+    ServicePrincipalId,
+    CallCount,
+    DistinctPaths,
+    SamplePaths,
+    WindowStart = FirstSeen,
+    WindowEnd = LastSeen
+| sort by Bucket desc, CallCount desc

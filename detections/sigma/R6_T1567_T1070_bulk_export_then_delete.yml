@@ -1,0 +1,61 @@
+title: Salesforce Bulk API Job Created and Deleted by Same Connected App Within 30 Minutes
+id: 6f7a8b9c-0d1e-4f2a-b3c4-5d6e7f8a9b0c
+status: experimental
+description: |
+  Detects a Salesforce Bulk API 2.0 job that is created and then deleted
+  by the same Connected App or External Client App within 30 minutes.
+  UNC6395 created a Bulk API 2.0 export job against the Cases object on
+  2025-08-17 11:11:56 UTC and deleted it 24 seconds after completion at
+  11:15:42 UTC. The deletion suppresses evidence in the Bulk API job
+  listing UI but not in Salesforce Event Monitoring records, which is what
+  makes the pattern detectable. permiso.io flagged the immediate-deletion
+  behavior as the campaign's anti-forensic signature.
+  This rule is correlation-based and runs against Salesforce Event
+  Monitoring. The lab does not fire this rule because Developer Edition
+  lacks Event Monitoring; the rule is documented and validated against
+  the GTIG and Cloudflare published timeline as a proxy.
+references:
+  - https://blog.cloudflare.com/response-to-salesloft-drift-incident/#detailed-event-timeline
+  - https://permiso.io/blog/anatomy-of-the-salesloft-breach
+  - https://developer.salesforce.com/docs/atlas.en-us.api_asynch.meta/api_asynch/asynch_api_intro.htm
+author: Zachariah Hansel
+date: 2026/04/26
+modified: 2026/04/26
+tags:
+  - attack.exfiltration
+  - attack.t1567
+  - attack.defense_evasion
+  - attack.t1070
+  - attack.collection
+  - attack.t1213.006
+logsource:
+  product: salesforce
+  service: event_monitoring
+  definition: |
+    Salesforce Event Monitoring BulkApi2 event type. Requires Salesforce
+    Shield (paid). The lab cannot fire this rule because Developer Edition
+    does not include Event Monitoring; the rule is validated against the
+    GTIG and Cloudflare published timeline.
+detection:
+  selection_job_create:
+    EVENT_TYPE: 'BulkApi2'
+    OPERATION: 'create'
+  selection_job_delete:
+    EVENT_TYPE: 'BulkApi2'
+    OPERATION: 'delete'
+  timeframe: 30m
+  condition: selection_job_create and selection_job_delete | join JOB_ID, CONNECTED_APP_ID
+fields:
+  - TIMESTAMP
+  - JOB_ID
+  - CONNECTED_APP_ID
+  - USER_ID
+  - CLIENT_IP
+  - OPERATION
+  - OBJECT
+falsepositives:
+  - Legitimate ETL pipelines that create, run, and delete Bulk API jobs as
+    a normal data hygiene pattern. Maintain an AppId allowlist for known
+    ETL service accounts.
+  - Salesforce CLI commands during DX-style development. Suppress by user.
+level: high

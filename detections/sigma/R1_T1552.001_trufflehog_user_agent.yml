@@ -1,0 +1,53 @@
+title: TruffleHog User-Agent on SaaS API Request
+id: 8a1f2c4e-9d3b-4a7e-b5c8-1f2e3d4a5b6c
+status: experimental
+description: |
+  Detects HTTP requests to a SaaS API where the User-Agent header contains
+  the literal string "truffleHog", which is the default User-Agent emitted
+  by the TruffleHog v3 secret-scanning tool. Observed by Google Threat
+  Intelligence Group and Cloudflare on 2025-08-09 11:51:13 UTC during the
+  UNC6395 verification of stolen Salesloft Drift OAuth tokens against the
+  Cloudflare tenant. A token verification probe immediately preceded the
+  attacker's first successful authenticated API call, making this User-Agent
+  a high-fidelity precursor IOC.
+references:
+  - https://cloud.google.com/blog/topics/threat-intelligence/data-theft-salesforce-instances-via-salesloft-drift
+  - https://blog.cloudflare.com/response-to-salesloft-drift-incident/
+  - https://github.com/trufflesecurity/trufflehog
+author: Zachariah Hansel
+date: 2026/04/26
+modified: 2026/04/26
+tags:
+  - attack.credential_access
+  - attack.t1552.001
+  - attack.t1528
+logsource:
+  category: webserver
+  product: salesforce
+  service: event_monitoring
+  definition: |
+    Salesforce Event Monitoring RestApi event. In Salesforce Shield this is
+    surfaced as the EventLogFile event type RestApi with the USER_AGENT field.
+    Free-tier substitute used in this lab is the local request log produced
+    by emulation/salesforce/scripts/04_recon_burst.sh, which records the
+    same User-Agent value on every captured request.
+detection:
+  selection:
+    USER_AGENT|contains: 'truffleHog'
+  filter_corp_ip:
+    CLIENT_IP|cidr:
+      - 10.0.0.0/8
+      - 192.168.0.0/16
+      - 172.16.0.0/12
+  condition: selection and not filter_corp_ip
+fields:
+  - USER_AGENT
+  - CLIENT_IP
+  - URI
+  - USER_ID
+  - CONNECTED_APP_ID
+falsepositives:
+  - Internal security or AppSec teams running TruffleHog hygiene scans against
+    their own SaaS APIs from corporate egress IPs (suppressed by filter_corp_ip).
+  - Penetration testers under engagement.
+level: high

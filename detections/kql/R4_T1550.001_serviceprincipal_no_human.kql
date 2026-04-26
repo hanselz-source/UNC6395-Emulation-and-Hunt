@@ -1,0 +1,37 @@
+// R4, T1550.001: Service-Principal Sign-In With No Preceding Human Sign-In for the Same App
+// Translated from detections/sigma/R4_T1550.001_oauth_signin_no_human_precursor.yml
+// Run inside Microsoft Sentinel against AADServicePrincipalSignInLogs and SigninLogs.
+//
+// Hypothesis: an OAuth application authenticated to Entra ID with no interactive
+// user sign-in for the same AppId in the prior 24 hours. UNC6395 used dormant
+// Drift OAuth tokens against victim Salesforce tenants this way; the M365 analog
+// is a service-principal sign-in with no recent human consent or interactive
+// touchpoint for the same application.
+
+let LookbackWindow = 24h;
+
+let HumanSignIns =
+    SigninLogs
+    | where TimeGenerated > ago(LookbackWindow)
+    | where ResultType == 0
+    | where AuthenticationDetails has "user"
+    | distinct AppId, UserPrincipalName, AppDisplayName;
+
+AADServicePrincipalSignInLogs
+| where TimeGenerated > ago(1h)
+| where ResultType == 0
+| extend AppKey = tostring(AppId)
+| join kind=leftanti (
+    HumanSignIns
+    | project AppKey = tostring(AppId)
+) on AppKey
+| project
+    TimeGenerated,
+    AppId,
+    AppDisplayName,
+    ServicePrincipalId,
+    ServicePrincipalName,
+    IPAddress,
+    ResourceDisplayName,
+    Location
+| sort by TimeGenerated desc

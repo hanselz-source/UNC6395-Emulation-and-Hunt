@@ -1,0 +1,156 @@
+<svg viewBox="0 0 980 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">UNC6395 lab architecture</title>
+  <desc id="desc">Three swimlanes: attacker, Salesforce victim tenant, and detection layer with six rules.</desc>
+
+  <style>
+    .lane-bg { fill: #f5f5f7; stroke: #d8dae0; stroke-width: 1; }
+    .lane-label { font: 600 12px system-ui, -apple-system, Segoe UI, sans-serif; fill: #5a6478; letter-spacing: 0.06em; text-transform: uppercase; }
+    .box { fill: #ffffff; stroke: #c9cdd6; stroke-width: 1.25; rx: 6; ry: 6; }
+    .box-title { font: 600 13px system-ui, -apple-system, Segoe UI, sans-serif; fill: #1a1a2e; }
+    .box-sub { font: 11px system-ui, -apple-system, Segoe UI, sans-serif; fill: #5a6478; }
+    .box-fires { stroke: #16a34a; stroke-width: 2.25; }
+    .box-partial { stroke: #d97706; stroke-width: 2.25; stroke-dasharray: 5 3; }
+    .box-doc { stroke: #94a3b8; stroke-width: 1.25; stroke-dasharray: 4 3; fill: #f8fafc; }
+    .arrow { stroke: #4a5568; stroke-width: 1.5; fill: none; }
+    .arrow-dashed { stroke: #94a3b8; stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+    .arrow-label { font: 10px system-ui, -apple-system, Segoe UI, sans-serif; fill: #5a6478; }
+    .legend-text { font: 11px system-ui, -apple-system, Segoe UI, sans-serif; fill: #1a1a2e; }
+  </style>
+
+  <defs>
+    <marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#4a5568"/>
+    </marker>
+    <marker id="arrowhead-light" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+
+  <rect width="980" height="620" fill="#ffffff"/>
+
+  <rect class="lane-bg" x="20" y="50" width="260" height="540" rx="8"/>
+  <rect class="lane-bg" x="300" y="50" width="380" height="540" rx="8"/>
+  <rect class="lane-bg" x="700" y="50" width="260" height="540" rx="8"/>
+
+  <text class="lane-label" x="40" y="38">Attacker / Supply Chain</text>
+  <text class="lane-label" x="320" y="38">Salesforce Dev Edition (Victim)</text>
+  <text class="lane-label" x="720" y="38">Detection Layer</text>
+
+  <rect class="box" x="50" y="80" width="200" height="60"/>
+  <text class="box-title" x="60" y="102">Attacker host</text>
+  <text class="box-sub" x="60" y="120">curl, Python, TruffleHog v3</text>
+
+  <rect class="box" x="50" y="170" width="200" height="80"/>
+  <text class="box-title" x="60" y="192">Bait GitHub repo</text>
+  <text class="box-sub" x="60" y="210">threathunter-truffle-target</text>
+  <text class="box-sub" x="60" y="226">config/secrets.yaml</text>
+  <text class="box-sub" x="60" y="240">FAKE refresh token</text>
+
+  <rect class="box" x="50" y="280" width="200" height="60"/>
+  <text class="box-title" x="60" y="302">Verify probe</text>
+  <text class="box-sub" x="60" y="320">User-Agent: truffleHog</text>
+
+  <rect class="box" x="320" y="80" width="340" height="100"/>
+  <text class="box-title" x="332" y="102">External Client App: Drift_Integration</text>
+  <text class="box-sub" x="332" y="122">consumer ID 888g5000000OC3G</text>
+  <text class="box-sub" x="332" y="138">scopes: api + refresh_token + offline_access</text>
+  <text class="box-sub" x="332" y="154">Refresh Token Policy: Infinite</text>
+  <text class="box-sub" x="332" y="170">callback http://localhost:8080/callback</text>
+
+  <rect class="box" x="320" y="200" width="340" height="60"/>
+  <text class="box-title" x="332" y="222">[1] OAuth Web Server Flow</text>
+  <text class="box-sub" x="332" y="240">access_token + refresh_token captured</text>
+
+  <rect class="box" x="320" y="280" width="340" height="60"/>
+  <text class="box-title" x="332" y="302">[2] Recon flat REST calls</text>
+  <text class="box-sub" x="332" y="320">/sobjects/  /Account/describe/  /limits/</text>
+
+  <rect class="box" x="320" y="360" width="340" height="60"/>
+  <text class="box-title" x="332" y="382">[3] 51 SOQL queries in 31s</text>
+  <text class="box-sub" x="332" y="400">UA: truffleHog on every request</text>
+
+  <rect class="box" x="320" y="450" width="105" height="50"/>
+  <text class="box-title" x="328" y="470">Audit Trail</text>
+  <text class="box-sub" x="328" y="486">consent png</text>
+
+  <rect class="box" x="437" y="450" width="105" height="50"/>
+  <text class="box-title" x="445" y="470">Login History</text>
+  <text class="box-sub" x="445" y="486">oauth png</text>
+
+  <rect class="box" x="555" y="450" width="105" height="50"/>
+  <text class="box-title" x="563" y="470">API Usage</text>
+  <text class="box-sub" x="563" y="486">55 / 15000</text>
+
+  <rect class="box" x="320" y="520" width="340" height="55"/>
+  <text class="box-title" x="332" y="542">recon_burst.log + terminal png</text>
+  <text class="box-sub" x="332" y="560">51 timestamped GET lines, UA=truffleHog</text>
+
+  <rect class="box box-fires" x="720" y="80" width="220" height="50"/>
+  <text class="box-title" x="730" y="100">R1  TruffleHog UA</text>
+  <text class="box-sub" x="730" y="118">T1552.001  fires</text>
+
+  <rect class="box box-fires" x="720" y="145" width="220" height="50"/>
+  <text class="box-title" x="730" y="165">R2  External Client App consent</text>
+  <text class="box-sub" x="730" y="183">T1528  fires</text>
+
+  <rect class="box box-doc" x="720" y="210" width="220" height="50"/>
+  <text class="box-title" x="730" y="230">R3  Entra ID consent</text>
+  <text class="box-sub" x="730" y="248">T1528  M365 mirror, doc only</text>
+
+  <rect class="box box-partial" x="720" y="275" width="220" height="50"/>
+  <text class="box-title" x="730" y="295">R4  OAuth no human precursor</text>
+  <text class="box-sub" x="730" y="313">T1550.001  partial</text>
+
+  <rect class="box box-fires" x="720" y="340" width="220" height="50"/>
+  <text class="box-title" x="730" y="360">R5  Volume burst &gt;50 / 5min</text>
+  <text class="box-sub" x="730" y="378">T1087.004  fires</text>
+
+  <rect class="box box-doc" x="720" y="405" width="220" height="50"/>
+  <text class="box-title" x="730" y="425">R6  Bulk export then delete</text>
+  <text class="box-sub" x="730" y="443">T1567 + T1070  Shield, doc only</text>
+
+  <rect class="box" x="720" y="480" width="220" height="50"/>
+  <text class="box-title" x="730" y="500">validation/06 Validation.md</text>
+  <text class="box-sub" x="730" y="518">per-rule fire / partial / gap</text>
+
+  <g transform="translate(720, 545)">
+    <rect class="box box-fires" x="0" y="0" width="14" height="10"/>
+    <text class="legend-text" x="20" y="9">fires</text>
+    <rect class="box box-partial" x="60" y="0" width="14" height="10"/>
+    <text class="legend-text" x="80" y="9">partial</text>
+    <rect class="box box-doc" x="130" y="0" width="14" height="10"/>
+    <text class="legend-text" x="150" y="9">doc only</text>
+  </g>
+
+  <path class="arrow" d="M 150 140 L 150 170" marker-end="url(#arrowhead)"/>
+  <text class="arrow-label" x="158" y="158">scan</text>
+
+  <path class="arrow" d="M 150 250 L 150 280" marker-end="url(#arrowhead)"/>
+  <text class="arrow-label" x="158" y="270">found token</text>
+
+  <path class="arrow" d="M 250 110 C 290 110, 290 130, 320 130" marker-end="url(#arrowhead)"/>
+  <text class="arrow-label" x="260" y="100">consent</text>
+
+  <path class="arrow" d="M 250 310 C 290 310, 290 230, 320 230" marker-end="url(#arrowhead)"/>
+  <text class="arrow-label" x="260" y="270">token use</text>
+
+  <path class="arrow" d="M 490 180 L 490 200" marker-end="url(#arrowhead)"/>
+  <path class="arrow" d="M 490 260 L 490 280" marker-end="url(#arrowhead)"/>
+  <path class="arrow" d="M 490 340 L 490 360" marker-end="url(#arrowhead)"/>
+
+  <path class="arrow" d="M 380 420 L 372 450" marker-end="url(#arrowhead)"/>
+  <path class="arrow" d="M 490 420 L 490 450" marker-end="url(#arrowhead)"/>
+  <path class="arrow" d="M 600 420 L 608 450" marker-end="url(#arrowhead)"/>
+
+  <path class="arrow" d="M 490 500 L 490 520" marker-end="url(#arrowhead)"/>
+
+  <path class="arrow" d="M 660 475 C 690 475, 690 105, 720 105" marker-end="url(#arrowhead)"/>
+  <path class="arrow" d="M 660 475 C 690 475, 690 170, 720 170" marker-end="url(#arrowhead)"/>
+  <path class="arrow" d="M 660 475 C 690 475, 690 300, 720 300" marker-end="url(#arrowhead)"/>
+  <path class="arrow" d="M 660 547 C 690 547, 690 365, 720 365" marker-end="url(#arrowhead)"/>
+
+  <path class="arrow-dashed" d="M 660 547 C 690 547, 690 235, 720 235" marker-end="url(#arrowhead-light)"/>
+  <path class="arrow-dashed" d="M 660 547 C 690 547, 690 430, 720 430" marker-end="url(#arrowhead-light)"/>
+
+  <path class="arrow" d="M 830 455 L 830 480" marker-end="url(#arrowhead)"/>
+</svg>

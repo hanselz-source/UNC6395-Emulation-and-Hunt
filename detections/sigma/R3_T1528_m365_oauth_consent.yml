@@ -1,0 +1,63 @@
+title: Microsoft Entra ID Consent to Application with High-Privilege Graph Scopes
+id: 3c4d5e6f-7a8b-4c9d-a0e1-2f3a4b5c6d7e
+status: experimental
+description: |
+  Detects an Entra ID (Azure AD) "Consent to application" event for an OAuth
+  application that requests high-privilege Microsoft Graph delegated or
+  application permissions such as User.Read.All, Files.Read.All, Mail.Read,
+  or Mail.ReadWrite. This is the Microsoft 365 analog of the Salesforce
+  OAuth consent abuse leveraged by UNC6395 against Salesforce tenants in
+  August 2025. The same "consent then exfiltrate" pattern is the basis of
+  illicit consent grant attacks across SaaS platforms (NOBELIUM,
+  Storm-0558, Midnight Blizzard).
+references:
+  - https://learn.microsoft.com/en-us/defender-cloud-apps/investigate-risky-oauth
+  - https://learn.microsoft.com/en-us/azure/active-directory/manage-apps/protect-against-consent-phishing
+  - https://cloud.google.com/blog/topics/threat-intelligence/data-theft-salesforce-instances-via-salesloft-drift
+author: Zachariah Hansel
+date: 2026/04/26
+modified: 2026/04/26
+tags:
+  - attack.credential_access
+  - attack.t1528
+  - attack.initial_access
+  - attack.t1566
+logsource:
+  product: azure
+  service: auditlogs
+  definition: |
+    Microsoft Entra ID audit logs, category ApplicationManagement.
+    In Microsoft Sentinel this surfaces as the AuditLogs table.
+    See detections/kql/R3_T1528_m365_oauth_consent.kql for the KQL
+    translation.
+detection:
+  selection_consent:
+    OperationName: 'Consent to application'
+  selection_high_priv_scope:
+    TargetResources|contains:
+      - 'User.Read.All'
+      - 'User.ReadWrite.All'
+      - 'Files.Read.All'
+      - 'Files.ReadWrite.All'
+      - 'Mail.Read'
+      - 'Mail.ReadWrite'
+      - 'Sites.Read.All'
+      - 'Directory.Read.All'
+      - 'Application.ReadWrite.All'
+  filter_admin_consent_workflow:
+    InitiatedBy.user.userPrincipalName|endswith: '@yourtenant.onmicrosoft.com'
+    InitiatedBy.user.roles|contains: 'Global Administrator'
+  condition: selection_consent and selection_high_priv_scope and not filter_admin_consent_workflow
+fields:
+  - TimeGenerated
+  - OperationName
+  - InitiatedBy.user.userPrincipalName
+  - TargetResources[0].displayName
+  - TargetResources[0].modifiedProperties
+  - ResultDescription
+falsepositives:
+  - Microsoft 365 admin onboarding a vetted enterprise application via the
+    admin consent workflow (suppressed by filter_admin_consent_workflow).
+  - Internal LOB applications being granted scopes during a planned migration.
+    Suppress by AppId after publishing the AppId allowlist to the SOC.
+level: high

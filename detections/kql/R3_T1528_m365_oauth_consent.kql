@@ -1,0 +1,36 @@
+// R3, T1528: Microsoft Entra ID Consent to Application with High-Privilege Graph Scopes
+// Translated from detections/sigma/R3_T1528_m365_oauth_consent.yml
+// Run inside Microsoft Sentinel against the AuditLogs table.
+//
+// Hypothesis: a user (or admin) consented to an OAuth application that requested
+// high-privilege Microsoft Graph scopes such as User.Read.All, Files.Read.All, or
+// Mail.Read. This is the M365 analog of the Salesforce OAuth consent abuse used
+// by UNC6395 in the Salesloft Drift campaign in August 2025.
+
+let HighPrivScopes = dynamic([
+    "User.Read.All", "User.ReadWrite.All",
+    "Files.Read.All", "Files.ReadWrite.All",
+    "Mail.Read", "Mail.ReadWrite",
+    "Sites.Read.All",
+    "Directory.Read.All",
+    "Application.ReadWrite.All"
+]);
+
+AuditLogs
+| where TimeGenerated > ago(24h)
+| where OperationName == "Consent to application"
+| extend AppName = tostring(TargetResources[0].displayName)
+| extend ModifiedProps = TargetResources[0].modifiedProperties
+| mv-expand ModifiedProps
+| extend NewValue = tostring(ModifiedProps.newValue)
+| where NewValue has_any (HighPrivScopes)
+| extend ConsentingUser = tostring(InitiatedBy.user.userPrincipalName)
+| project
+    TimeGenerated,
+    ConsentingUser,
+    AppName,
+    ConsentedScopes = NewValue,
+    OperationName,
+    ResultDescription,
+    CorrelationId
+| sort by TimeGenerated desc

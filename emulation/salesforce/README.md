@@ -70,14 +70,14 @@ If you already have a working refresh token, skip 01 and 02 and run `bash script
 
 **zsh gotcha:** the access token contains `!`, which triggers history expansion. Single-quote the bearer header (`-H 'Authorization: Bearer 00Dg...'`) or use `setopt no_bang_hist` for the session. Backslash-escaping works but single quotes are cleaner.
 
-### 2. Capture T1528 evidence (consent + login)
+### 2. Capture T1528 Evidence (consent + login)
 
 After step 1, in the Salesforce UI:
 
 1. Setup -> Quick Find -> "View Setup Audit Trail". Filter by your test user. The full External Client App lifecycle is visible: creation, OAuth policy binding, consumer key/secret generation, refresh token policy change. Save as `output/consent_audit_trail.png`.
 2. Setup -> Quick Find -> "Login History". Filter on the test user. Crop to the rows showing the browser interactive login and the OAuth `Remote Access 2.0` rows (Application column = `Drift Integration`). Save as `output/login_history_oauth.png`.
 
-### 3. Run the recon burst (T1087.004 / R5)
+### 3. Run the Recon Burst (T1087.004 / R5)
 
 ```
 bash scripts/05_describe_and_sobjects.sh
@@ -88,7 +88,7 @@ bash scripts/04_recon_burst.sh
 
 Total post-burst should sit comfortably above R5's >50-in-5-minutes threshold. Validation run hit 51 queries in 31 seconds, ~99x the threshold rate.
 
-### 4. Capture R5 evidence (substitute for OAuth Usage page)
+### 4. Capture R5 Evidence (substitute for OAuth Usage page)
 
 The legacy "Connected Apps OAuth Usage" page is not exposed for External Client Apps in Developer Edition. Two substitutes:
 

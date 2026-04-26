@@ -1,0 +1,59 @@
+title: High-Volume Cloud Account or Object Enumeration from a Single OAuth App
+id: 5e6f7a8b-9c0d-4e1f-a2b3-4c5d6e7f8a9b
+status: experimental
+description: |
+  Detects more than 50 cloud-account or sObject enumeration calls from a
+  single OAuth application within a 5-minute tumbling window. UNC6395
+  followed a "schema-then-bulk" recon pattern: object enumeration via
+  GET /sobjects/, schema describes via /sobjects/<Object>/describe/, then
+  COUNT() probes against Account, Contact, User, Case before sample
+  LIMIT 20 queries. The volume signature is the cleanest detection target
+  because legitimate apps batch, paginate, and rate-limit.
+  This rule is aggregation-based; the Sigma block declares the timeframe
+  and condition. The KQL translation in
+  detections/kql/R5_T1087.004_volume_enumeration.kql implements the
+  five-minute tumbling window over MicrosoftGraphActivityLogs (M365 side)
+  and is annotated with the equivalent against Salesforce Event Monitoring
+  ApiEvent for the Salesforce side.
+references:
+  - https://blog.cloudflare.com/response-to-salesloft-drift-incident/#detailed-event-timeline
+  - https://learn.microsoft.com/en-us/graph/microsoft-graph-activity-logs-overview
+author: Zachariah Hansel
+date: 2026/04/26
+modified: 2026/04/26
+tags:
+  - attack.discovery
+  - attack.t1087.004
+  - attack.collection
+  - attack.t1213.006
+logsource:
+  product: azure
+  service: microsoftgraphactivitylogs
+  definition: |
+    Microsoft Graph activity logs (MicrosoftGraphActivityLogs in Sentinel),
+    or Salesforce Event Monitoring ApiEvent for the Salesforce-side
+    implementation. Both expose AppId / CONNECTED_APP_ID and the request
+    URI which is needed to filter on enumeration endpoints.
+detection:
+  selection_enum_endpoints:
+    RequestUri|contains:
+      - '/v1.0/users'
+      - '/v1.0/groups'
+      - '/v1.0/applications'
+      - '/services/data/v60.0/sobjects/'
+      - '/services/data/v60.0/query'
+  timeframe: 5m
+  condition: selection_enum_endpoints | count() by AppId > 50
+fields:
+  - TimeGenerated
+  - AppId
+  - ServicePrincipalId
+  - RequestUri
+  - ResponseStatusCode
+falsepositives:
+  - Bulk identity sync tools (HRIS to AD/Entra integrations, MDM endpoint
+    inventory) that enumerate users on a schedule. Suppress by AppId after
+    establishing a 30-day baseline.
+  - Salesforce middleware (MuleSoft, Boomi) running scheduled object
+    enumeration. Same suppression pattern.
+level: medium

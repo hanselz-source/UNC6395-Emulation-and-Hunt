@@ -1,0 +1,60 @@
+title: OAuth Application Sign-In with No Preceding Human Sign-In for the Same App
+id: 4d5e6f7a-8b9c-4d0e-b1f2-3a4b5c6d7e8f
+status: experimental
+description: |
+  Detects an OAuth application sign-in (service-principal or Connected App
+  token use) where no interactive user sign-in for the same application has
+  been observed in the prior 24 hours. UNC6395 used stolen Drift OAuth
+  refresh tokens to authenticate against Cloudflare's Salesforce tenant on
+  2025-08-12, 2025-08-13, 2025-08-16 and 2025-08-17 with no preceding human
+  consent or interactive login on the victim side, because consent had been
+  obtained months earlier and the token bypassed all interactive auth paths
+  including MFA.
+  This rule is correlation-based and is best expressed in KQL or the SIEM's
+  native correlation engine. The Sigma block below captures the trigger
+  half (the OAuth sign-in itself); the correlation half is documented in
+  the references section and implemented in the KQL translation.
+references:
+  - https://blog.cloudflare.com/response-to-salesloft-drift-incident/
+  - https://learn.microsoft.com/en-us/azure/active-directory/reports-monitoring/concept-sign-ins
+author: Zachariah Hansel
+date: 2026/04/26
+modified: 2026/04/26
+tags:
+  - attack.lateral_movement
+  - attack.t1550.001
+  - attack.defense_evasion
+  - attack.t1078.004
+logsource:
+  product: azure
+  service: signinlogs
+  definition: |
+    Microsoft Entra ID sign-in logs, ServicePrincipalSignInLogs schema.
+    Salesforce analog: LoginHistory rows where Application Type
+    (LoginType in the LoginEvent schema) equals "Remote Access 2.0".
+    See detections/kql/R4_T1550.001_serviceprincipal_no_human.kql for the
+    Microsoft 365 implementation. Salesforce-side production data source
+    is Event Monitoring LoginEvent filtered on LoginType.
+detection:
+  selection_sp_signin:
+    Category: 'ServicePrincipalSignInLogs'
+    ResultType: 0
+  filter_known_baseline_apps:
+    AppId:
+      - '00000003-0000-0000-c000-000000000000'
+  condition: selection_sp_signin and not filter_known_baseline_apps
+fields:
+  - TimeGenerated
+  - AppId
+  - AppDisplayName
+  - ServicePrincipalId
+  - IPAddress
+  - ResourceDisplayName
+falsepositives:
+  - Scheduled service-account integrations that legitimately run without an
+    interactive precursor (backup, ETL, monitoring agents). Maintain an
+    AppId allowlist for these and suppress.
+  - First-party Microsoft service principals (suppressed by
+    filter_known_baseline_apps; extend the list with your tenant's
+    first-party apps).
+level: medium
