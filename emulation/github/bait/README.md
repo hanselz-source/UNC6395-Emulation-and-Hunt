@@ -1,4 +1,4 @@
-# Internal Drift Integration
+# Drift_Integration
 
 Internal helper service for our Salesforce ↔ Drift sync. Owned by RevOps Platform.
 

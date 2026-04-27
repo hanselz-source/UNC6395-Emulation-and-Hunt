@@ -40,8 +40,14 @@ detection:
       - '/v1.0/users'
       - '/v1.0/groups'
       - '/v1.0/applications'
+      - '/services/data/v58.0/sobjects/'
+      - '/services/data/v58.0/query'
+      - '/services/data/v59.0/sobjects/'
+      - '/services/data/v59.0/query'
       - '/services/data/v60.0/sobjects/'
       - '/services/data/v60.0/query'
+      - '/services/data/v61.0/sobjects/'
+      - '/services/data/v61.0/query'
   timeframe: 5m
   condition: selection_enum_endpoints | count() by AppId > 50
 fields:

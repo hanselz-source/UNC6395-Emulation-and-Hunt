@@ -3,7 +3,7 @@
 **Case Study:** Salesloft Drift OAuth Compromise and Salesforce Mass Exfiltration (August 2025)
 
 > Hybrid actor + campaign profile. Actor-centric framing with the Salesloft Drift incident as the primary documented operation.
-> Sources: [[GTIG Advisory]], [[CloudFlare Victim-Side Blog]], [[permiso.io Anatomy Writeup]]
+> Sources: [[GTIG Advisory]], [[Cloudflare Victim-Side Blog]], [[permiso.io Anatomy Writeup]]
 > Sections marked **[Inferred]** are drafted from analyst inference, not direct quotes from the three source files. Review before publishing.
 
 ---
@@ -133,7 +133,7 @@ Standard victim-side controls (MFA, IP allowlists on user logins, session timeou
 | T1199 | Initial Access | Trusted Relationship | Use of Salesloft Drift's pre-existing OAuth trust into customer Salesforce orgs |
 | T1528 | Credential Access | Steal Application Access Token | Extraction of Drift OAuth tokens from Salesloft's AWS environment |
 | T1098.001 | Persistence | Account Manipulation: Additional Cloud Credentials | Added guest user to Salesloft's GitHub organization for persistence |
-| T1078.004 | Defense Evasion / Persistence | Valid Accounts: Cloud Accounts | OAuth token reuse against victim Salesforce tenants |
+| T1078.004 | Defense Evasion | Valid Accounts: Cloud Accounts | OAuth token reuse against victim Salesforce tenants |
 | T1538 | Discovery | Cloud Service Dashboard | GET against `/services/data/v58.0/sobjects/` and `/limits/` |
 | T1580 | Discovery | Cloud Infrastructure Discovery | Object enumeration, COUNT() probes against Account, Contact, User, Case |
 | T1213.006 | Collection | Data from Information Repositories: Databases | SOQL queries against User, Case, CaseTeamMemberHistory, Organization |
@@ -211,10 +211,9 @@ LIMIT 20
 
 ```sql
 -- Case bulk pull
-SELECT Id, Username, Email, FirstName, LastName, Name, Title, CompanyName,
-       Department, Division, Phone, MobilePhone, IsActive, LastLoginDate,
-       CreatedDate, LastModifiedDate, TimeZoneSidKey, LocaleSidKey,
-       LanguageLocaleKey, EmailEncodingKey
+SELECT Id, CaseNumber, Subject, Description, Status, Priority, Origin,
+       Type, Reason, AccountId, ContactId, OwnerId, IsClosed, IsEscalated,
+       ClosedDate, CreatedDate, LastModifiedDate, SystemModstamp, Comments
 FROM Case
 LIMIT 10000
 ```

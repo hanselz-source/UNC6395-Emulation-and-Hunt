@@ -8,8 +8,8 @@ description: |
   or Mail.ReadWrite. This is the Microsoft 365 analog of the Salesforce
   OAuth consent abuse leveraged by UNC6395 against Salesforce tenants in
   August 2025. The same "consent then exfiltrate" pattern is the basis of
-  illicit consent grant attacks across SaaS platforms (NOBELIUM,
-  Storm-0558, Midnight Blizzard).
+  illicit consent grant attacks documented by Microsoft against the
+  Midnight Blizzard (formerly NOBELIUM) actor.
 references:
   - https://learn.microsoft.com/en-us/defender-cloud-apps/investigate-risky-oauth
   - https://learn.microsoft.com/en-us/azure/active-directory/manage-apps/protect-against-consent-phishing
@@ -20,8 +20,6 @@ modified: 2026/04/26
 tags:
   - attack.credential_access
   - attack.t1528
-  - attack.initial_access
-  - attack.t1566
 logsource:
   product: azure
   service: auditlogs

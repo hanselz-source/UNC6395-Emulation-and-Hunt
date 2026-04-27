@@ -42,4 +42,4 @@ These three gaps are documented in `../../validation/` as known limitations, not
 
 - Validate R1, R2, R5 against the captured Salesforce artifacts. Screenshots of each rule firing go in `../../validation/`.
 - Translate R3, R4, R5 to KQL in `../kql/`. R3 and R5 KQL files already exist; R4 is the correlation-heavy one and needs the `join` operator.
-- For each rule that does not fire, add a one-paragraph note in `../../validation/06 Validation.md` describing what log source was missing, what baseline window would be needed, and whether the rule logic itself is sound.
+- For each rule that does not fire, add a one-paragraph note in `../../validation/Validation.md` describing what log source was missing, what baseline window would be needed, and whether the rule logic itself is sound.

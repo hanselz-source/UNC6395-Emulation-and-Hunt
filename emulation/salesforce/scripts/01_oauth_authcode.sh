@@ -15,7 +15,7 @@ KEYS_DIR="$BASE_DIR/keys"
 
 if [ ! -f "$KEYS_DIR/consumer_key" ]; then
   echo "ERROR: $KEYS_DIR/consumer_key not found." >&2
-  echo "  Get it from Salesforce Setup -> App Manager -> Internal Drift Analog -> Manage Consumer Details" >&2
+  echo "  Get it from Salesforce Setup -> External Client App Manager -> Drift_Integration -> Manage Consumer Details" >&2
   exit 1
 fi
 

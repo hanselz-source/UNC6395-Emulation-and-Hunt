@@ -2,7 +2,7 @@
 
 ## Threat Profile
 
-Between March and August 2025, a financially motivated actor tracked as **UNC6395** (Mandiant), **GRUB1** (Cloudflare), and publicly claimed by ShinyHunters compromised the Salesloft Drift application and used its OAuth integration to mass-exfiltrate Salesforce data from approximately 700 downstream customer tenants including Cloudflare. The actor obtained access to Salesloft's GitHub repositories between March and June 2025, extracted OAuth refresh tokens for the Drift Salesforce integration from Salesloft's AWS environment (Secrets Manager / SSM Parameter Store), then operated against victim Salesforce tenants from August 8 to August 20 by reusing those tokens as valid app credentials. Recon followed a "schema-then-bulk" pattern (object enumeration, COUNT probes, schema describes) before pivoting to Salesforce Bulk API 2.0 jobs for export, with immediate job deletion as anti-forensics and Tor exit nodes for egress. Stolen records were mined offline with TruffleHog for embedded secrets (AWS access keys, Snowflake credentials, passwords, SSO/VPN URLs) to enable downstream compromise. Salesloft revoked all Drift OAuth and refresh tokens and removed Drift from the Salesforce AppExchange on August 20, 2025.
+Between March and August 2025, a financially motivated actor tracked as **UNC6395** (Mandiant), **GRUB1** (Cloudflare), and publicly claimed by ShinyHunters compromised the Salesloft Drift application and used its OAuth integration to mass-exfiltrate Salesforce data from downstream customer tenants including Cloudflare. The actor obtained access to Salesloft's GitHub repositories between March and June 2025, extracted OAuth refresh tokens for the Drift Salesforce integration from Salesloft's AWS environment (Secrets Manager / SSM Parameter Store), then operated against victim Salesforce tenants from August 8 to August 20 by reusing those tokens as valid app credentials. Recon followed a "schema-then-bulk" pattern (object enumeration, COUNT probes, schema describes) before pivoting to Salesforce Bulk API 2.0 jobs for export, with immediate job deletion as anti-forensics and Tor exit nodes for egress. Stolen records were mined offline with TruffleHog for embedded secrets (AWS access keys, Snowflake credentials, passwords, SSO/VPN URLs) to enable downstream compromise. Salesloft revoked all Drift OAuth and refresh tokens and removed Drift from the Salesforce AppExchange on August 20, 2025.
 
 Full profile, IOCs, and timeline: [`profile/README.md`](profile/README.md).
 
@@ -116,7 +116,7 @@ For each rule that fires, the validation file walks through the captured evidenc
 │   │   ├── keys/                          External Client App consumer_key + secret (gitignored tokens)
 │   │   ├── scripts/                       OAuth flow + token refresh + recon burst (UA=truffleHog)
 │   │   └── output/                        recon_burst.log, sobjects/describe/limits JSON, four PNGs
-│   └── m365/                              Microsoft 365 mirror (scoped, not built)
+│   (m365/ subfolder is not present in this repo: the Microsoft 365 mirror was scoped but not built; see the "What I Would Do with More Time" section)
 ├── detections/
 │   ├── sigma/
 │   │   ├── README.md                      rule index, validation status, gaps

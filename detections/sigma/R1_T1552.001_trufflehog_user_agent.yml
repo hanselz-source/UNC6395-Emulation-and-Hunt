@@ -20,7 +20,6 @@ modified: 2026/04/26
 tags:
   - attack.credential_access
   - attack.t1552.001
-  - attack.t1528
 logsource:
   category: webserver
   product: salesforce

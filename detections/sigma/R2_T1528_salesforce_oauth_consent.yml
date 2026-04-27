@@ -20,8 +20,6 @@ modified: 2026/04/26
 tags:
   - attack.credential_access
   - attack.t1528
-  - attack.persistence
-  - attack.t1098.001
 logsource:
   product: salesforce
   service: setup_audit_trail

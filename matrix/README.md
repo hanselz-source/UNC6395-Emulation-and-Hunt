@@ -20,7 +20,7 @@ The matrix is deliberately scoped at ten rows. Five additional techniques were c
 
 | # | ATT&CK ID | Technique | Tactic | Plan | Evidence | Detection Rule |
 |---|---|---|---|---|---|---|
-| 1 | [T1195.002](https://attack.mitre.org/techniques/T1195/002/) | Supply Chain Compromise: Software Supply Chain | Initial Access | Document | Salesloft Drift application compromised upstream; trust relationship abused into ~700 downstream Salesforce tenants (GTIG; permiso.io) | (none, document only) |
+| 1 | [T1195.002](https://attack.mitre.org/techniques/T1195/002/) | Supply Chain Compromise: Software Supply Chain | Initial Access | Document | Salesloft Drift application compromised upstream; trust relationship abused into downstream Salesforce tenants (GTIG; permiso.io) | (none, document only) |
 | 2 | [T1199](https://attack.mitre.org/techniques/T1199/) | Trusted Relationship (Salesloft Drift connected app) | Initial Access | Document | Pre-existing OAuth trust between Drift and customer Salesforce orgs reused with stolen tokens (GTIG; Cloudflare) | (none, document only) |
 | 3 | [T1552.001](https://attack.mitre.org/techniques/T1552/001/) | Unsecured Credentials: Credentials In Files (GitHub, AWS SSM) | Credential Access | **Emulate** | Salesloft GitHub repos accessed March to June 2025; OAuth tokens extracted from AWS Secrets Manager / SSM Parameter Store (permiso.io); TruffleHog observed verifying a Cloudflare token on 2025-08-09 11:51:13 (Cloudflare) | R1 |
 | 4 | [T1528](https://attack.mitre.org/techniques/T1528/) | Steal Application Access Token (OAuth refresh token) | Credential Access | **Emulate** | Drift OAuth refresh tokens stolen from Salesloft's AWS environment and used as Drift against victim tenants (GTIG; permiso.io) | R2 (Salesforce), R3 (M365 mirror) |
@@ -57,7 +57,7 @@ The five excluded techniques are listed below with the cut rationale. Each is st
 
 **Plan:** Document.
 **Tactic:** Initial Access.
-**What happened:** Salesloft's Drift application was compromised, and the per-user OAuth tokens issued by Drift to ~700 downstream Salesforce customers were operationalized as valid app credentials. This is a textbook software supply chain compromise: a single upstream foothold yielded admin-equivalent reach across hundreds of victim tenants.
+**What happened:** Salesloft's Drift application was compromised, and the per-user OAuth tokens issued by Drift to its downstream Salesforce customers were operationalized as valid app credentials. This is a textbook software supply chain compromise: a single upstream foothold yielded admin-equivalent reach across hundreds of victim tenants.
 **Evidence:** GTIG advisory; Cloudflare blog naming the upstream vector; permiso.io anatomy writeup.
 **Why not emulated:** Reproducing this would require breaching a real third-party SaaS vendor. Out of scope. The lab covers the downstream effect via T1528 / T1550.001.
 
@@ -90,11 +90,11 @@ The five excluded techniques are listed below with the cut rationale. Each is st
 
 **Plan:** Emulate.
 **Tactic:** Credential Access.
-**What happened:** OAuth refresh tokens for the Drift application, stolen from Salesloft's AWS environment, were used to obtain access tokens against ~700 Salesforce tenants. Drift's per-user token architecture meant any user who connected the integration handed over a token with their own privilege; admins handed over admin-level reach.
+**What happened:** OAuth refresh tokens for the Drift application, stolen from Salesloft's AWS environment, were used to obtain access tokens against the broader set of downstream Salesforce tenants. Drift's per-user token architecture meant any user who connected the integration handed over a token with their own privilege; admins handed over admin-level reach.
 **Evidence:** GTIG advisory; permiso.io section on per-user token architecture.
 **Lab emulation:**
 
-- Salesforce Setup, App Manager, New Connected App `Internal Drift Analog`. OAuth scopes `api`, `refresh_token`, `offline_access`. Callback `http://localhost:8080/callback`.
+- Salesforce Setup, App Manager, New External Client App `Drift_Integration`. OAuth scopes `api`, `refresh_token`, `offline_access`. Callback `http://localhost:8080/callback`.
 - Run the OAuth 2.0 Web Server Flow with a Python script. Capture access and refresh tokens.
 - Verify Setup, Security, View Setup Audit Trail shows the Connected App authorization entry. Screenshot.
 - Verify Setup, Security, Identity, Login History shows the OAuth Application Type row. Screenshot.
@@ -149,10 +149,10 @@ The five excluded techniques are listed below with the cut rationale. Each is st
 **Tactic:** Collection.
 **What happened:** Substantive SOQL pulls against User (with the full PII column set), Case (LIMIT 10000), `CaseTeamMemberHistory__c` (LIMIT 5000), and Organization (tenant fingerprint). GTIG documents the same pattern across Account, Opportunity, User, Case.
 **Evidence:** Cloudflare timeline (queries on 2025-08-13 19:33:11, 2025-08-14 04:34:39, 2025-08-14 11:09:14, 2025-08-14 11:09:21); GTIG sample queries.
-**Why not separately emulated:** Captured implicitly by T1087.004 (the discovery queries) and the bulk export covered by T1567.002. Adding a third lab variant would not produce a distinct rule.
+**Why not separately emulated:** Captured implicitly by T1087.004 (the discovery queries) and the bulk export covered by T1567. Adding a third lab variant would not produce a distinct rule.
 **Detection coverage:** R5 (volume) and R6 (bulk-export-then-delete pattern).
 
-### 9. T1567.002, Exfiltration to Cloud Storage
+### 9. T1567, Exfiltration Over Web Service
 
 **Plan:** Document.
 **Tactic:** Exfiltration.
@@ -167,7 +167,7 @@ The five excluded techniques are listed below with the cut rationale. Each is st
 **Tactic:** Defense Evasion.
 **What happened:** The Bulk API 2.0 export job created at 2025-08-17 11:11:56 was deleted at 2025-08-17 11:15:42, roughly 24 seconds after completion. permiso.io flags the immediate-deletion behavior as the campaign's anti-forensic signature; the deletion does not impact Salesforce Event Monitoring records, which is what makes the pattern detectable.
 **Evidence:** Cloudflare timeline (deletion event); permiso.io signal-detection section.
-**Why not emulated:** The lab can emulate creation+deletion of a Bulk API job in Developer Edition, but Setup Audit Trail does not capture job-level CRUD without Event Monitoring. Marked Document and covered by the same rule (R6) as T1567.002.
+**Why not emulated:** The lab can emulate creation+deletion of a Bulk API job in Developer Edition, but Setup Audit Trail does not capture job-level CRUD without Event Monitoring. Marked Document and covered by the same rule (R6) as T1567.
 
 ---
 
@@ -180,7 +180,7 @@ The five excluded techniques are listed below with the cut rationale. Each is st
 | R3 | T1528 (M365 mirror) | Entra ID consent grant for an app requesting high-privilege scopes (`User.Read.All`, `Files.Read.All`, `Mail.Read`) | Entra ID `AuditLogs`, `OperationName == "Consent to application"` |
 | R4 | T1550.001 / T1078.004 | Service-principal sign-in for an `AppId` with no preceding user-interactive sign-in in the prior 24 hours | `SigninLogs` (ServicePrincipal schema); Salesforce Login History `Application Type == OAuth` |
 | R5 | T1087.004 / T1213.006 | Anomalous volume of cloud-account enumeration calls from a single app within a 5-minute window (>50 calls) | Graph `/users` enumeration via `MicrosoftGraphActivityLogs`; Connected App OAuth Usage SOQL counts |
-| R6 | T1567.002 / T1070 | Bulk export job created and deleted by the same Connected App within 30 minutes | Salesforce Event Monitoring `BulkApi2`, `ApiTotalUsage:DELETE` |
+| R6 | T1567 / T1070 | Bulk export job created and deleted by the same Connected App within 30 minutes | Salesforce Event Monitoring `BulkApi2`, `ApiTotalUsage:DELETE` |
 
 KQL translations for R3, R4, R5 land in `../detections/kql/`. Sigma sources of truth land in `../detections/sigma/`. One file per rule, named by ATT&CK ID.
 

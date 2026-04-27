@@ -5,8 +5,8 @@ description: |
   Detects a Salesforce Bulk API 2.0 job that is created and then deleted
   by the same Connected App or External Client App within 30 minutes.
   UNC6395 created a Bulk API 2.0 export job against the Cases object on
-  2025-08-17 11:11:56 UTC and deleted it 24 seconds after completion at
-  11:15:42 UTC. The deletion suppresses evidence in the Bulk API job
+  2025-08-17 11:11:56 UTC; the job completed at 11:15:18 UTC and was
+  deleted 24 seconds later at 11:15:42 UTC. The deletion suppresses evidence in the Bulk API job
   listing UI but not in Salesforce Event Monitoring records, which is what
   makes the pattern detectable. permiso.io flagged the immediate-deletion
   behavior as the campaign's anti-forensic signature.

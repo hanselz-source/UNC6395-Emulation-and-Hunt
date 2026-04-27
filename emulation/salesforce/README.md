@@ -5,7 +5,7 @@
 
 ## Why This Exists
 
-UNC6395 obtained Drift's OAuth refresh tokens upstream, then used them as valid app credentials against ~700 downstream Salesforce tenants. From the victim side this looked like Drift calling Drift's API. The high-signal anomalies are the consent grant itself (R2, R3), the service-principal sign-in with no preceding human auth for the same `AppId` (R4), and the volume signature of the schema-then-bulk recon burst (R5). Cloudflare's timeline (`profile/README.md` section 5) anchors all three.
+UNC6395 obtained Drift's OAuth refresh tokens upstream, then used them as valid app credentials against downstream Salesforce tenants. From the victim side this looked like Drift calling Drift's API. The high-signal anomalies are the consent grant itself (R2, R3), the service-principal sign-in with no preceding human auth for the same `AppId` (R4), and the volume signature of the schema-then-bulk recon burst (R5). Cloudflare's timeline (`profile/README.md` section 5) anchors all three.
 
 This emulation reproduces the downstream half of the kill chain inside an owned Salesforce Developer Edition tenant. We are not breaching a real third-party SaaS vendor. The "Drift" app in this lab is named `Drift_Integration` and lives entirely in the test org. The captured tokens never leave the lab.
 
@@ -86,7 +86,7 @@ bash scripts/04_recon_burst.sh
 
 `04` issues 51 SOQL queries: 5 COUNT probes across Account, Contact, User, Case, Opportunity, then 5 passes of (3 objects x 3 LIMIT clauses) progressive pulls, then 1 detailed User enumeration mirroring Cloudflare's 2025-08-14 11:09:21 query. Every request carries `User-Agent: truffleHog`. `05` adds the `/sobjects/`, `/describe/`, and `/limits/` calls that mirror Cloudflare's 2025-08-12 and 2025-08-13 entries.
 
-Total post-burst should sit comfortably above R5's >50-in-5-minutes threshold. Validation run hit 51 queries in 31 seconds, ~99x the threshold rate.
+Total post-burst should sit comfortably above R5's >50-in-5-minutes threshold. Validation run hit 51 queries in 31 seconds (~99 queries per minute), roughly 10x the rule's threshold rate of 10 queries per minute.
 
 ### 4. Capture R5 Evidence (substitute for OAuth Usage page)
 
@@ -107,7 +107,7 @@ The legacy "Connected Apps OAuth Usage" page is not exposed for External Client 
 | `output/limits.json` | Limits endpoint response (`DailyApiRequests: 14998/15000` pre-burst), mirrors Cloudflare 2025-08-14 11:09:22 entry |
 | `output/consent_audit_trail.png` | Setup Audit Trail showing full External Client App lifecycle for `Drift_Integration`. T1528 evidence including the Refresh Token Policy change to Infinite |
 | `output/login_history_oauth.png` | Login History showing browser interactive sign-in at 10:21:29 PDT, OAuth Drift Integration success at 10:50:55 PDT, failed nonce retry at 10:51:16 PDT. T1550.001 + R4 evidence in one frame |
-| `output/request_metadata.txt` | UTC timestamps for the three flat REST recon calls plus instance URL and consumer ID |
+| `output/request_metadata.txt` | UTC timestamps for the three flat REST recon calls (sobjects listing, Account describe, limits), each tagged `UA=truffleHog` |
 
 ## IOC Mapping
 
@@ -125,8 +125,8 @@ The legacy "Connected Apps OAuth Usage" page is not exposed for External Client 
 ## Detection Notes (feeds into R2, R4, R5)
 
 - **R2 (T1528, Salesforce side):** Setup Audit Trail row "Generated the consumer secret for the External Client App" or "Updated External Client App OAuth Policies... Refresh Token Policy Type" within the last N hours, where the External Client App requests `api` + `refresh_token` scopes. Lab uses Setup Audit Trail directly. Production rule cites Salesforce Event Monitoring `EventLogFile` event type `LoginAs` and a JOIN against the `ConnectedApplication` and `ExternalClientApplication` sObjects.
-- **R4 (T1550.001 / T1078.004):** Login History row with `Application Type == Remote Access 2.0` (OAuth) where the same `UserId` has no `Application Type == Application` (interactive browser) row in the prior 24 hours. The lab fires this on a single OAuth login because the test user's prior interactive sign-in was 29 minutes earlier, well inside the 24-hour window. In a real victim tenant, the absence of a preceding human sign-in is the detection. Production rule field-maps to `LoginEvent.LoginType == "Remote Access 2.0"` plus the absence of a recent `LoginEvent.LoginType == "Application"`.
-- **R5 (T1087.004 / T1213.006):** Connected/External Client App SOQL call count >50 within a 5-minute window for a single app. The lab fires this from the `recon_burst_terminal.png` (client-side capture of 51 queries in 31 seconds) and the `system_overview_api_usage.png` (55-call org-level counter delta). Production rule field-maps to Salesforce Event Monitoring `ApiEvent` aggregated by `CONNECTED_APP_ID` over a tumbling 5-minute window. The free-tier substitution is documented as a known gap in `06 Validation.md`.
+- **R4 (T1550.001 / T1078.004):** Login History row with `Application Type == Remote Access 2.0` (OAuth) where the same `AppId` (Application column, e.g. `Drift Integration`) has no `Application Type == Application` (interactive browser) row in the prior 24 hours. The lab fires this on a single OAuth login because the test user's prior interactive sign-in was 29 minutes earlier, well inside the 24-hour window. In a real victim tenant, the absence of a preceding human sign-in is the detection. Production rule field-maps to `LoginEvent.LoginType == "Remote Access 2.0"` plus the absence of a recent `LoginEvent.LoginType == "Application"`.
+- **R5 (T1087.004 / T1213.006):** Connected/External Client App SOQL call count >50 within a 5-minute window for a single app. The lab fires this from the `recon_burst_terminal.png` (client-side capture of 51 queries in 31 seconds) and the `system_overview_api_usage.png` (55-call org-level counter delta). Production rule field-maps to Salesforce Event Monitoring `ApiEvent` aggregated by `CONNECTED_APP_ID` over a tumbling 5-minute window. The free-tier substitution is documented as a known gap in `../../validation/Validation.md`.
 - **R1 (T1552.001):** request with `User-Agent` matching `truffleHog`. The lab captures the request locally because Setup Audit Trail does not surface User-Agent. Production rule field-maps to `RestApi.USER_AGENT == "truffleHog"`. Capitalization matters: lowercase t, uppercase H.
 - False positives: legitimate admins testing newly created External Client Apps, security teams running TruffleHog for credential hygiene against their own APIs, scheduled bulk integrations during their daily window. Tune by tying R5 to External Client Apps with no prior 30-day baseline and R1 to OAuth-token-bearing requests originating from non-corporate egress.
 

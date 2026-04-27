@@ -110,7 +110,7 @@
   <text class="box-sub" x="730" y="443">T1567 + T1070  Shield, doc only</text>
 
   <rect class="box" x="720" y="480" width="220" height="50"/>
-  <text class="box-title" x="730" y="500">validation/06 Validation.md</text>
+  <text class="box-title" x="730" y="500">validation/Validation.md</text>
   <text class="box-sub" x="730" y="518">per-rule fire / partial / gap</text>
 
   <g transform="translate(720, 545)">
