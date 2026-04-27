@@ -1,4 +1,4 @@
-# Validation: UNC6395 / Salesloft Drift Detection Package
+# Validation: UNC6395 / Salesloft Drift Emulation and Hunt
 
 **Scope:** Six Sigma rules in `../detections/sigma/`, three KQL translations in `../detections/kql/`, validated against captured artifacts in `../emulation/`.
 **Lab tenant:** Salesforce Developer Edition, External Client App `Drift_Integration`, consumer ID `888g5000000OC3G`.
