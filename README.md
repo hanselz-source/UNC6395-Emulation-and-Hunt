@@ -1,10 +1,6 @@
-# UNC6395 / Salesloft Drift Detection Package
+# UNC6395 / Salesloft Drift Emulation and Detection
 
-A weekend detection-engineering deliverable covering the Salesloft Drift OAuth supply-chain compromise of August 2025. Includes a threat profile, an MITRE ATT&CK matrix, a reproducible lab emulation against a Salesforce Developer Edition tenant, six Sigma rules with three KQL translations, and a per-rule validation pass with honest gaps.
-
----
-
-## Threat Profile in One Paragraph
+## Threat Profile
 
 Between March and August 2025, a financially motivated actor tracked as **UNC6395** (Mandiant), **GRUB1** (Cloudflare), and publicly claimed by ShinyHunters compromised the Salesloft Drift application and used its OAuth integration to mass-exfiltrate Salesforce data from approximately 700 downstream customer tenants including Cloudflare. The actor obtained access to Salesloft's GitHub repositories between March and June 2025, extracted OAuth refresh tokens for the Drift Salesforce integration from Salesloft's AWS environment (Secrets Manager / SSM Parameter Store), then operated against victim Salesforce tenants from August 8 to August 20 by reusing those tokens as valid app credentials. Recon followed a "schema-then-bulk" pattern (object enumeration, COUNT probes, schema describes) before pivoting to Salesforce Bulk API 2.0 jobs for export, with immediate job deletion as anti-forensics and Tor exit nodes for egress. Stolen records were mined offline with TruffleHog for embedded secrets (AWS access keys, Snowflake credentials, passwords, SSO/VPN URLs) to enable downstream compromise. Salesloft revoked all Drift OAuth and refresh tokens and removed Drift from the Salesforce AppExchange on August 20, 2025.
 
@@ -26,7 +22,7 @@ Full profile, IOCs, and timeline: [`profile/README.md`](profile/README.md).
 
 ![UNC6395 lab architecture](lab/architecture.svg)
 
-Three swimlanes left to right: attacker / supply chain (TruffleHog scan against an owned bait repo, then a verification probe with `User-Agent: truffleHog`), Salesforce Developer Edition victim tenant (External Client App `Drift_Integration` with `Refresh Token Policy = Infinite`, OAuth Web Server Flow, recon flat REST calls, and a 51-query SOQL burst), and the detection layer (six Sigma rules feeding the validation file). Solid green borders are rules that fire on captured artifacts (R1, R2, R5), amber dashed is partial (R4), gray dashed is documented but not fired (R3 needs the M365 mirror, R6 needs Salesforce Shield).
+Attacker / supply chain (TruffleHog scan against an owned bait repo, then a verification probe with `User-Agent: truffleHog`), Salesforce Developer Edition victim tenant (External Client App `Drift_Integration` with `Refresh Token Policy = Infinite`, OAuth Web Server Flow, recon flat REST calls, and a 51-query SOQL burst), and the detection layer (six Sigma rules feeding the validation file). Solid green borders are rules that fire on captured artifacts (R1, R2, R5), amber dashed is partial (R4), gray dashed is documented but not fired.
 
 Diagram source: [`lab/architecture.svg`](lab/architecture.svg).
 
@@ -74,16 +70,9 @@ Full per-rule validation: [`validation/Validation.md`](validation/Validation.md)
 
 For each rule that fires, the validation file walks through the captured evidence artifact, the timestamps, and the latency between attacker action and detection. For each rule that does not fire, the file documents what log source is missing, what would be required to fire it cleanly, and whether the rule logic itself is sound.
 
-The two strongest assets in this package:
-
-1. **R1 (TruffleHog User-Agent)** is the most defensible single rule because the IOC is a literal string named in the GTIG advisory, the detection is a one-line `contains` match, and the lab reproduces it end-to-end. The Sigma rule is approximately 30 lines including metadata and false-positive notes.
-2. **R2 (External Client App + Infinite refresh token policy)** is the second most defensible because the lab External Client App was deliberately configured to mirror Drift's actual posture (`api` + `refresh_token` + `offline_access` scopes, Refresh Token Policy = Infinite). The Setup Audit Trail row at 10:28:40 PDT showing the policy change is the lab artifact that ties the emulation to the real Drift configuration that made the campaign possible.
-
 ---
 
 ## What I Would Do with More Time
-
-The most important section of this README. What was deliberately cut, in priority order:
 
 1. **Build the M365 Developer Program mirror.** Fires R3 cleanly against captured `AuditLogs`, validates the cross-platform translation thesis (same OAuth consent abuse pattern, different SaaS). Estimated effort: 90 minutes for tenant + Entra ID app registration + one consent grant + KQL validation in Sentinel. Was scoped for Sunday 09:00 to 10:30 PDT in the original roadmap; the block was reallocated to detection rule authoring after Salesforce-side emulation ran longer than estimated.
 
