@@ -1,4 +1,4 @@
-# UNC6395 / Salesloft Drift Emulation and Detection
+# UNC6395 / Salesloft Drift Emulation and Hunt
 
 ## Threat Profile
 
