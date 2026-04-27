@@ -207,10 +207,6 @@ The OAuth sign-in at 10:50:55 has a preceding interactive sign-in at 10:21:29, 2
 
 ---
 
-## Sign-Off
-
-This validation pass walks each rule through evidence -> selection match -> expected production behavior. The package is reproducible end-to-end from `../emulation/`, the rules are validated against captured artifacts where possible, and the gaps (R3 M365, R6 Shield, R4 24h precursor) are documented rather than hidden.
-
 **Validated by:** Zachariah Hansel
 **Date:** 2026-04-26
 **Tenant:** Salesforce Developer Edition org `00Dg5000008v3PaEAI`
