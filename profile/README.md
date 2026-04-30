@@ -3,8 +3,6 @@
 **Case Study:** Salesloft Drift OAuth Compromise and Salesforce Mass Exfiltration (August 2025)
 
 > Hybrid actor + campaign profile. Actor-centric framing with the Salesloft Drift incident as the primary documented operation.
-> Sources: [[GTIG Advisory]], [[Cloudflare Victim-Side Blog]], [[permiso.io Anatomy Writeup]]
-> Sections marked **[Inferred]** are drafted from analyst inference, not direct quotes from the three source files. Review before publishing.
 
 ---
 
