@@ -1,0 +1,82 @@
+title: Salesforce sObject Enumeration Call
+id: 1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+name: salesforce_enumeration_call
+status: experimental
+description: |
+  Base event for the R3 correlation. A single Salesforce REST call against
+  an object-listing, schema-describe or SOQL query endpoint. Ordinary
+  integration traffic on its own. Not an alert.
+
+  The path match is version-agnostic. Listing API versions by hand goes
+  quiet on the next Salesforce release.
+references:
+  - https://blog.cloudflare.com/response-to-salesloft-drift-incident/#detailed-event-timeline
+  - https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_list.htm
+author: Zachariah Hansel
+date: 2026/08/05
+modified: 2026/08/05
+tags:
+  - attack.discovery
+  - attack.t1087.004
+logsource:
+  product: salesforce
+  service: event_monitoring
+  definition: |
+    Salesforce Event Monitoring ApiEvent or RestApi event type, delivered
+    through EventLogFile. Requires Salesforce Shield. Developer Edition does
+    not include it, which is why this rule is not fired in the lab.
+    Cloudflare's first observed enumeration call was
+    GET /services/data/v58.0/sobjects/ at 2025-08-12 22:14:09 UTC.
+detection:
+  selection_rest_api:
+    URI|contains: '/services/data/'
+  selection_enum_endpoints:
+    URI|contains:
+      - '/sobjects/'
+      - '/query'
+      - '/limits'
+  condition: selection_rest_api and selection_enum_endpoints
+falsepositives:
+  - Any Salesforce integration. This base rule is not an alert on its own
+    and should not be deployed by itself.
+level: informational
+---
+title: High-Volume Salesforce Object Enumeration from a Single Connected App
+id: 2b3c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d6f
+status: experimental
+description: |
+  More than 50 Salesforce object enumeration or SOQL calls from a single
+  Connected App or External Client App within a 5-minute window.
+
+  UNC6395 enumerated objects with GET /sobjects/,
+  pulled schema with /sobjects/<Object>/describe/, ran COUNT() probes, then
+  sample LIMIT queries. The lab reproduced 51 queries in 31 seconds.
+
+  The threshold of 50 is an estimate. The lab burst cleared it by one event.
+  Baseline before deploying.
+references:
+  - https://blog.cloudflare.com/response-to-salesloft-drift-incident/#detailed-event-timeline
+  - https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_list.htm
+author: Zachariah Hansel
+date: 2026/08/05
+modified: 2026/08/05
+tags:
+  - attack.discovery
+  - attack.t1087.004
+  - attack.collection
+  - attack.t1213.006
+correlation:
+  type: event_count
+  rules:
+    - salesforce_enumeration_call
+  group-by:
+    - CONNECTED_APP_ID
+  timespan: 5m
+  condition:
+    gt: 50
+falsepositives:
+  - Salesforce middleware such as MuleSoft or Boomi running scheduled object
+    enumeration. Suppress by CONNECTED_APP_ID after a 30-day baseline.
+  - Data loader and backup tools during a full sync.
+  - Salesforce CLI or DX commands during development. Suppress by user.
+level: medium

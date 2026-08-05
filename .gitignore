@@ -1,0 +1,25 @@
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Credentials for the lab Salesforce org. None of these belong in the repo.
+# Copy the .example file next to each one and fill it in locally.
+emulation/salesforce/keys/consumer_key
+emulation/salesforce/keys/consumer_secret
+emulation/salesforce/keys/access_token
+emulation/salesforce/keys/refresh_token
+emulation/salesforce/keys/instance_url
+emulation/salesforce/keys/auth_code
+*.token
+*token.txt
+
+# Scan working files
+emulation/github/output/truffle.stderr.log
+output/*.tmp
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/

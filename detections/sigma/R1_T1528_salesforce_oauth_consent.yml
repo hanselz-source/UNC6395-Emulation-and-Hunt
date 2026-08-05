@@ -1,0 +1,63 @@
+title: Salesforce External Client App Created or Granted an Infinite Refresh Token
+id: 2b3c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d6e
+status: experimental
+description: |
+  Detects a Salesforce External Client App (or legacy Connected App) being
+  created, having its credentials generated, or having its refresh token
+  policy widened to Infinite.
+
+  UNC6395's access worked because Drift's refresh tokens stayed valid
+  indefinitely. A token policy change to Infinite is the single highest
+  value row in the Setup Audit Trail for this campaign. Pairs with R2 when
+  the new app authenticates soon after creation.
+
+  The rule does not read OAuth scopes. The Setup Audit Trail carries one
+  free-text Action per row and no scope list. Scopes live on
+  OAuthConfig.Scopes on the ExternalClientApplication or
+  ConnectedApplication sObject. Treat an alert here as the trigger for that
+  lookup.
+references:
+  - https://cloud.google.com/blog/topics/threat-intelligence/data-theft-salesforce-instances-via-salesloft-drift
+  - https://help.salesforce.com/s/articleView?id=sf.connected_app_create_api_integration.htm
+  - https://help.salesforce.com/s/articleView?id=xcloud.external_client_apps_overview.htm
+author: Zachariah Hansel
+date: 2026/08/05
+modified: 2026/08/05
+tags:
+  - attack.credential-access
+  - attack.t1528
+logsource:
+  product: salesforce
+  service: setup_audit_trail
+  definition: |
+    Salesforce Setup Audit Trail. Production replacement is the
+    EventLogFile event type ConnectedApplication, plus a JOIN against the
+    ConnectedApplication and ExternalClientApplication sObjects to read
+    the OAuthConfig.Scopes field. Free-tier substitute used in this lab
+    is the Setup Audit Trail UI export, captured in
+    emulation/salesforce/output/consent_audit_trail.png.
+detection:
+  selection_app_lifecycle:
+    Action|contains:
+      - 'Created the External Client App'
+      - 'Created Connected Application'
+      - 'Generated the consumer key for the External Client App'
+      - 'Generated the consumer secret for the External Client App'
+      - 'Associated a new External Client App OAuth Policies'
+  selection_token_lifetime_change:
+    Action|contains:
+      - 'Changed Refresh Token Policy Type from SpecificLifetime to Infinite'
+      - 'Cleared Refresh Token Validity Period'
+  condition: selection_app_lifecycle or selection_token_lifetime_change
+fields:
+  - Date
+  - User
+  - Section
+  - Action
+falsepositives:
+  - Legitimate admins onboarding a new SaaS integration (CRM analytics, MDM,
+    chat tooling). Tune by maintaining a baseline list of approved app names
+    and suppressing matches on those.
+  - Salesforce CLI or DX commands that mutate Connected Apps during normal
+    development. Suppress by user (DevOps service account) or by IP range.
+level: medium

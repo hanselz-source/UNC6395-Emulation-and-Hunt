@@ -1,0 +1,9 @@
+TruffleHog scan summary
+Target:    /Users/hanselz/Documents/ThreatHunter Lab/threathunter-truffle-target
+Findings:  4
+
+Detectors and files matched:
+  - PrivateKey             [unverified] /Users/hanselz/Documents/ThreatHunter Lab/threathunter-truffle-target/.git/objects/b0/aeccc6914a331b38be8fe97c152079a45dffee
+  - SlackWebhook           [unverified] /Users/hanselz/Documents/ThreatHunter Lab/threathunter-truffle-target/.git/objects/e2/e0379706a36b7da878977dd280bc028e52ec9e
+  - PrivateKey             [unverified] /Users/hanselz/Documents/ThreatHunter Lab/threathunter-truffle-target/config/signing_key.pem
+  - SlackWebhook           [unverified] /Users/hanselz/Documents/ThreatHunter Lab/threathunter-truffle-target/config/secrets.yaml

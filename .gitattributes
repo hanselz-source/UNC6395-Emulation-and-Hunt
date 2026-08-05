@@ -1,0 +1,8 @@
+# Keep everything LF in the repository.
+#
+# run_trufflehog.sh embeds a python heredoc. Its terminator does not match if
+# the file is checked out with CRLF, and bash then reports a syntax error at
+# the closing brace 23 lines further down rather than at the heredoc.
+* text=auto eol=lf
+
+*.png binary

@@ -1,0 +1,14 @@
+# Note: config/secrets.yaml is intentionally NOT excluded.
+# This is the bait file for Emulation 1 (T1552.001).
+# In a real production repo this would be ignored. The omission is the
+# entire point of the lab - it represents the developer-mistake scenario
+# UNC6395 exploited against Salesloft.
+
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.env
+*.log
+.DS_Store

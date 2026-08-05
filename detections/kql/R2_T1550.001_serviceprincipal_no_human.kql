@@ -1,0 +1,45 @@
+// R2, T1550.001: Service-Principal Sign-In With No Preceding Human Sign-In for the Same App
+// Translated from detections/sigma/R2_T1550.001_oauth_signin_no_human_precursor.yml
+// Run inside Microsoft Sentinel against AADServicePrincipalSignInLogs and SigninLogs.
+//
+// Hypothesis: an OAuth application authenticated to Entra ID with no interactive
+// user sign-in for the same AppId in the prior 24 hours. UNC6395 used dormant
+// Drift OAuth tokens against victim Salesforce tenants this way; the M365 analog
+// is a service-principal sign-in with no recent human consent or interactive
+// touchpoint for the same application.
+
+let LookbackWindow = 24h;
+
+// SigninLogs holds interactive user sign-ins, which is already the filter we
+// want. No further predicate establishes "a human did this".
+//
+// NonInteractiveUserSignInLogs is excluded. A refresh-token renewal with no
+// human present would otherwise count as a precursor and suppress the exact
+// case this rule catches.
+let HumanSignIns =
+    SigninLogs
+    | where TimeGenerated > ago(LookbackWindow)
+    | where ResultType == 0
+    | distinct AppId;
+
+AADServicePrincipalSignInLogs
+| where TimeGenerated > ago(1h)
+| where ResultType == 0
+// First-party Microsoft Graph. Extend this list with your own tenant's
+// first-party service principals before deploying.
+| where AppId !in ("00000003-0000-0000-c000-000000000000")
+| extend AppKey = tostring(AppId)
+| join kind=leftanti (
+    HumanSignIns
+    | project AppKey = tostring(AppId)
+) on AppKey
+| project
+    TimeGenerated,
+    AppId,
+    AppDisplayName,
+    ServicePrincipalId,
+    ServicePrincipalName,
+    IPAddress,
+    ResourceDisplayName,
+    Location
+| sort by TimeGenerated desc

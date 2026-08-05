@@ -1,0 +1,62 @@
+title: OAuth Application Sign-In with No Preceding Human Sign-In for the Same App
+id: 4d5e6f7a-8b9c-4d0e-b1f2-3a4b5c6d7e8f
+status: experimental
+description: |
+  Detects an OAuth application sign-in (service-principal or Connected App
+  token use) where no interactive user sign-in for the same application has
+  been observed in the prior 24 hours. UNC6395 used stolen Drift OAuth
+  refresh tokens to authenticate against Cloudflare's Salesforce tenant on
+  2025-08-12, 2025-08-13, 2025-08-16 and 2025-08-17 with no preceding human
+  consent or interactive login on the victim side, because consent had been
+  obtained months earlier and the token bypassed all interactive auth paths
+  including MFA.
+  The detection is the absence of a preceding event, which no Sigma
+  correlation type expresses. This file is the trigger half only and matches
+  every successful service principal sign-in. Do not deploy it alone. The
+  anti-join is in detections/kql/R2_T1550.001_serviceprincipal_no_human.kql.
+references:
+  - https://blog.cloudflare.com/response-to-salesloft-drift-incident/
+  - https://learn.microsoft.com/en-us/azure/active-directory/reports-monitoring/concept-sign-ins
+author: Zachariah Hansel
+date: 2026/08/05
+modified: 2026/08/05
+tags:
+  - attack.lateral-movement
+  - attack.t1550.001
+  - attack.stealth
+  - attack.t1078.004
+logsource:
+  product: azure
+  service: serviceprincipalsigninlogs
+  definition: |
+    Microsoft Entra ID service principal sign-in logs, the
+    AADServicePrincipalSignInLogs table in Sentinel. SigninLogs is a separate
+    table holding interactive user sign-ins and is the other half of the
+    anti-join.
+
+    Salesforce analog: LoginHistory rows where Application Type (LoginType in
+    the LoginEvent schema) equals "Remote Access 2.0", captured in
+    login_history_oauth.png.
+detection:
+  selection_sp_signin:
+    ResultType: 0
+  filter_first_party_apps:
+    AppId:
+      - '00000003-0000-0000-c000-000000000000'
+  condition: selection_sp_signin and not filter_first_party_apps
+fields:
+  - TimeGenerated
+  - AppId
+  - AppDisplayName
+  - ServicePrincipalId
+  - IPAddress
+  - ResourceDisplayName
+falsepositives:
+  - Every successful service principal sign-in, if deployed without the
+    anti-join.
+  - Scheduled service account integrations that legitimately run with no
+    interactive precursor, such as backup, ETL and monitoring agents.
+    Allowlist by AppId.
+  - First-party Microsoft service principals. One is suppressed by
+    filter_first_party_apps. Extend the list for your tenant.
+level: low
